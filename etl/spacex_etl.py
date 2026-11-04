@@ -3,14 +3,13 @@ import pandas as pd
 from utils.db import get_db_connection
 from utils.logger import logger
 
-SPACEX_URL = "https://api.spacexdata.com/v4/launches"
+SPACEX_URL = "https://gateway.pipeworx.io/spacex/v4/launches/past?limit=300"
 
 
 def fetch_spacex_data():
     logger.info("Starting SpaceX API request...")
-    response = requests.get(SPACEX_URL)
-
     try:
+        response = requests.get(SPACEX_URL, timeout=20)
         response.raise_for_status()
         logger.info("SpaceX API request successful.")
         return response.json()
@@ -24,8 +23,26 @@ def transform_data(raw):
 
     try:
         df = pd.json_normalize(raw)
+
+        # Ensure all expected fields exist
+        expected_columns = [
+            "id",
+            "name",
+            "date_utc",
+            "success",
+            "rocket",
+            "details",
+            "flight_number",
+            "upcoming"
+        ]
+
+        for col in expected_columns:
+            if col not in df.columns:
+                df[col] = None
+
         logger.info(f"Transformation complete. Rows: {len(df)}")
         return df
+
     except Exception as e:
         logger.error(f"Error transforming SpaceX data: {e}")
         raise
@@ -39,6 +56,12 @@ def load_to_postgres(df):
 
     try:
         for _, row in df.iterrows():
+            
+            # Skip rows missing required primary key
+            if not row.get("id"):
+                logger.warning(f"Skipping row with missing id: {row.get('name')}")
+                continue
+            
             cur.execute("""
                 INSERT INTO spacex_launches (
                     id, name, date_utc, success, rocket, details,
