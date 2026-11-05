@@ -32,19 +32,32 @@ def transform_data(raw):
 
 
 def load_to_postgres(df):
-    logger.info("Loading data into PostgreSQL...")
+    logger.info("Loading NASA data into PostgreSQL...")
 
     conn = get_db_connection()
     cur = conn.cursor()
 
     try:
         for _, row in df.iterrows():
+
+            # Safely extract close approach data
+            cad = row.get("close_approach_data")
+            if cad and isinstance(cad, list) and len(cad) > 0:
+                cad_entry = cad[0]
+                close_approach_date = cad_entry.get("close_approach_date")
+                relative_velocity = cad_entry.get("relative_velocity", {}).get("kilometers_per_second")
+                miss_distance = cad_entry.get("miss_distance", {}).get("kilometers")
+            else:
+                close_approach_date = None
+                relative_velocity = None
+                miss_distance = None
+
             cur.execute("""
                 INSERT INTO nasa_neo (
                     id, name, nasa_jpl_url, absolute_magnitude,
-                    is_potentially_hazardous, estimated_diameter_min,
-                    estimated_diameter_max, close_approach_date,
-                    relative_velocity, miss_distance
+                    is_potentially_hazardous,
+                    estimated_diameter_min, estimated_diameter_max,
+                    close_approach_date, relative_velocity, miss_distance
                 )
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 ON CONFLICT (id) DO NOTHING;
@@ -56,22 +69,24 @@ def load_to_postgres(df):
                 row.get("is_potentially_hazardous_asteroid"),
                 row.get("estimated_diameter.kilometers.estimated_diameter_min"),
                 row.get("estimated_diameter.kilometers.estimated_diameter_max"),
-                row["close_approach_data"][0].get("close_approach_date"),
-                row["close_approach_data"][0].get("relative_velocity.kilometers_per_second"),
-                row["close_approach_data"][0].get("miss_distance.kilometers")
+                close_approach_date,
+                relative_velocity,
+                miss_distance
             ))
 
         conn.commit()
-        logger.info("PostgreSQL load complete.")
+        logger.info("NASA PostgreSQL load complete.")
 
     except Exception as e:
-        logger.error(f"Error loading data into PostgreSQL: {e}")
+        logger.error(f"Error loading NASA data into PostgreSQL: {e}")
         conn.rollback()
         raise
 
     finally:
         cur.close()
         conn.close()
+
+
 
 
 def run_pipeline():
