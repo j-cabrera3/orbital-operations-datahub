@@ -1,18 +1,26 @@
 stages:
   - etl
 
-image: python:3.10
-
-before_script:
-  - pip install -r requirements.txt
-
+# Use your local Windows runner instead of GitLab cloud runners
+# These tags MUST match the tags you entered during runner registration
 nasa_etl_job:
   stage: etl
+  tags:
+    - local
+    - windows
+    - docker
+  before_script:
+    - pip install -r requirements.txt
   script:
     - python -m etl.nasa_etl
 
 spacex_etl_job:
   stage: etl
+  tags:
+    - local
+    - windows
+    - docker
+  before_script:
+    - pip install -r requirements.txt
   script:
     - python -m etl.spacex_etl
-
