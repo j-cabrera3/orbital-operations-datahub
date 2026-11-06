@@ -10,7 +10,7 @@ def get_db_connection():
         cfg = yaml.safe_load(f)
 
     conn = psycopg2.connect(
-        host=cfg["host"],
+        host=cfg["etl_host"],
         port=cfg["port"],
         database=cfg["database"],
         user=cfg["user"],
