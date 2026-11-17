@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def get_db_connection():
     with open("config/db_config.yaml", "r") as f:
         cfg = yaml.safe_load(f)

@@ -56,12 +56,14 @@ def load_to_postgres(df):
 
     try:
         for _, row in df.iterrows():
-            
+
             # Skip rows missing required primary key
             if not row.get("id"):
-                logger.warning(f"Skipping row with missing id: {row.get('name')}")
+                logger.warning(
+                    f"Skipping row with missing id: {row.get('name')}"
+                )
                 continue
-            
+
             cur.execute("""
                 INSERT INTO spacex_launches (
                     id, name, date_utc, success, rocket, details,

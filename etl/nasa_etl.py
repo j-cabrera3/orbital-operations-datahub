@@ -45,8 +45,14 @@ def load_to_postgres(df):
             if cad and isinstance(cad, list) and len(cad) > 0:
                 cad_entry = cad[0]
                 close_approach_date = cad_entry.get("close_approach_date")
-                relative_velocity = cad_entry.get("relative_velocity", {}).get("kilometers_per_second")
-                miss_distance = cad_entry.get("miss_distance", {}).get("kilometers")
+                relative_velocity = (
+                    cad_entry.get("relative_velocity", {})
+                    .get("kilometers_per_second")
+                )
+                miss_distance = (
+                    cad_entry.get("miss_distance", {})
+                    .get("kilometers")
+                )
             else:
                 close_approach_date = None
                 relative_velocity = None
@@ -67,8 +73,12 @@ def load_to_postgres(df):
                 row.get("nasa_jpl_url"),
                 row.get("absolute_magnitude_h"),
                 row.get("is_potentially_hazardous_asteroid"),
-                row.get("estimated_diameter.kilometers.estimated_diameter_min"),
-                row.get("estimated_diameter.kilometers.estimated_diameter_max"),
+                row.get(
+                    "estimated_diameter.kilometers.estimated_diameter_min"
+                ),
+                row.get(
+                    "estimated_diameter.kilometers.estimated_diameter_max"
+                ),
                 close_approach_date,
                 relative_velocity,
                 miss_distance
@@ -87,8 +97,6 @@ def load_to_postgres(df):
         conn.close()
 
 
-
-
 def run_pipeline():
     logger.info("NASA ETL pipeline started.")
     raw = fetch_nasa_data()
@@ -99,4 +107,3 @@ def run_pipeline():
 
 if __name__ == "__main__":
     run_pipeline()
-

@@ -1,16 +1,34 @@
 stages:
+  - lint
+  - test
   - etl
 
-# Use your local Windows runner instead of GitLab cloud runners
-# These tags MUST match the tags you entered during runner registration
+lint_python:
+  stage: lint
+  tags:
+    - local
+    - windows
+    - docker
+  script:
+    - pip install -r requirements-dev.txt
+    - flake8 etl utils
+
+test_python:
+  stage: test
+  tags:
+    - local
+    - windows
+    - docker
+  script:
+    - pip install -r requirements-dev.txt
+    - pytest
+
 nasa_etl_job:
   stage: etl
   tags:
     - local
     - windows
     - docker
-  before_script:
-    - pip install -r requirements.txt
   script:
     - python -m etl.nasa_etl
 
@@ -20,7 +38,5 @@ spacex_etl_job:
     - local
     - windows
     - docker
-  before_script:
-    - pip install -r requirements.txt
   script:
     - python -m etl.spacex_etl
